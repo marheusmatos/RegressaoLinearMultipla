@@ -1,6 +1,7 @@
 """Respostas do trabalho 2."""
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_graph(data: pd.DataFrame, col_x: str, col_y: str):
@@ -33,8 +34,39 @@ def get_correlation(data: pd.DataFrame, col_1: str, col_2: str):
     return rho
 
 
-def exec_(alinea_a=False,
-          alinea_b=False):
+def mrlm(data: pd.DataFrame):
+    """Função que realiza o metodo.
+        data -> Base de dados.
+    """
+    x = pd.concat([
+        pd.DataFrame([1 for _ in range(len(data))]),
+        data.loc[:, ['Volume', 'Peso']]
+    ], axis=1)
+    y = data['CO2']
+
+    x = np.matrix(x)
+    y = np.reshape(np.matrix(y), (-1, 1))
+
+    transp_x = x.transpose()
+
+    beta_ = np.matmul(
+        np.matmul(
+            np.linalg.inv(np.matmul(transp_x, x)),
+            transp_x),
+        y)
+
+    print('    [ D ] O Hiperplano é: y = ' +
+          f'{round(float(beta_[0]), 6)} + ' +
+          f'{round(float(beta_[1]), 6)}*x1 + ' +
+          f'{round(float(beta_[2]), 6)}*x2')
+    return beta_
+
+
+def exec_(data,
+          alinea_a=False,
+          alinea_b=False,
+          alinea_d=False,
+          ):
     """Executa todas as alineas do trabalho.
     aliena_a -> Caso True executa o solicitado na alinea A.
     aliena_b -> Caso True executa o solicitado na alinea B.
@@ -72,15 +104,24 @@ def exec_(alinea_a=False,
             porcentagem.
         """
     # ======================================================================= #
-
+    if alinea_d:
+        # Alínea D
+        mrlm(data)
+        """
+            O Hiperplano é: y = 79.694719 + 0.007805*x1 + 0.007551*x2
+        """
+    # ======================================================================= #
     return
 
 
 if __name__ == '__main__':
     data = pd.read_csv("cars.csv")
-    executar_alinea_a = True
-    executar_alinea_b = True
+    executar_alinea_a = False
+    executar_alinea_b = False
+    executar_alinea_c = True
 
-    exec_(
-        executar_alinea_a,
-        executar_alinea_b)
+    exec_(data,
+          executar_alinea_a,
+          executar_alinea_b,
+          executar_alinea_c,
+          )
