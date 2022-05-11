@@ -55,6 +55,9 @@ def mrlm(data: pd.DataFrame):
             transp_x),
         y)
 
+    print(f'    [ D ] beta_0 = {round(float(beta_[0]), 6)}')
+    print(f'    [ D ] beta_1 = {round(float(beta_[1]), 6)}')
+    print(f'    [ D ] beta_2 = {round(float(beta_[2]), 6)}')
     print('    [ D ] O Hiperplano é: y = ' +
           f'{round(float(beta_[0]), 6)} + ' +
           f'{round(float(beta_[1]), 6)}*x1 + ' +
@@ -62,10 +65,42 @@ def mrlm(data: pd.DataFrame):
     return beta_
 
 
+def get_y_(data: pd.DataFrame, beta_: np.matrix):
+    """Calcula os valores estimados de y para o hiperplano (y chapéu)."""
+    beta_0 = round(float(beta_[0]), 6)
+    beta_1 = round(float(beta_[1]), 6)
+    beta_2 = round(float(beta_[2]), 6)
+    x1 = data['Volume'].values
+    x2 = data['Peso'].values
+    y_ = np.reshape(
+        np.matrix([
+            beta_0 + beta_1 * x1[i] + beta_2 * x2[i]
+            for i in range(len(data))]),
+        (-1, 1))
+    y_list = [round(val[0], 6) for val in y_.tolist()]
+    print(f'    [ E ] y^ = {y_list}')
+    return y_
+
+
+def get_res(data: pd.DataFrame, y_: np.matrix):
+    """Calcula os resíduosde cada ponto."""
+    y = data['CO2'].values
+    res = np.reshape(
+        np.matrix([y[i] - float(y_[i]) for i in range(len(y_))]),
+        (-1, 1)
+    )
+    res_list = [round(val[0], 6) for val in res.tolist()]
+    print(f'    [ F ] Os residuos são: {res_list}')
+    return res
+
+
 def exec_(data,
           alinea_a=False,
           alinea_b=False,
           alinea_d=False,
+          alinea_e=False,
+          alinea_f=False,
+          alinea_g=False,
           ):
     """Executa todas as alineas do trabalho.
     aliena_a -> Caso True executa o solicitado na alinea A.
@@ -78,6 +113,7 @@ def exec_(data,
         # Plota o gráfico para a variável Peso
         plot_graph(data, 'Peso', 'CO2')
     # ======================================================================= #
+
     if alinea_b:
         # Alínea (B)
         # Estima a correlação entre a variavel Y (CO2)
@@ -104,12 +140,35 @@ def exec_(data,
             porcentagem.
         """
     # ======================================================================= #
+
     if alinea_d:
         # Alínea D
         mrlm(data)
         """
             O Hiperplano é: y = 79.694719 + 0.007805*x1 + 0.007551*x2
         """
+    # ======================================================================= #
+
+    if alinea_e:
+        # Alínea E
+        beta_ = mrlm(data)
+        get_y_(data, beta_)
+    # ======================================================================= #
+
+    if alinea_f:
+        # Alínea F
+        beta_ = mrlm(data)
+        y_ = get_y_(data, beta_)
+        get_res(data, y_)
+    # ======================================================================= #
+
+    if alinea_g:
+        # Alínea D
+        beta_ = mrlm(data)
+        y_ = get_y_(data, beta_)
+        res = get_res(data, y_)
+        plt.hist(res)
+        plt.show()
     # ======================================================================= #
     return
 
@@ -118,10 +177,16 @@ if __name__ == '__main__':
     data = pd.read_csv("cars.csv")
     executar_alinea_a = False
     executar_alinea_b = False
-    executar_alinea_c = True
+    executar_alinea_d = False
+    executar_alinea_e = False
+    executar_alinea_f = False
+    executar_alinea_g = True
 
     exec_(data,
           executar_alinea_a,
           executar_alinea_b,
-          executar_alinea_c,
+          executar_alinea_d,
+          executar_alinea_e,
+          executar_alinea_f,
+          executar_alinea_g,
           )
